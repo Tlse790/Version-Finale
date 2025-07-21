@@ -1,4 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
+// Timer de repos par série
+const RestTimer: React.FC<{ initial: number; onDone: () => void }> = ({ initial, onDone }) => {
+  const [time, setTime] = useState(initial);
+  const [running, setRunning] = useState(true);
+
+  useEffect(() => {
+    if (!running) return;
+    if (time <= 0) {
+      onDone();
+      return;
+    }
+    const interval = setInterval(() => setTime(t => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [time, running, onDone]);
+
+  return (
+    <div className="flex items-center space-x-2 mt-2">
+      <Loader2 className="animate-spin text-blue-600" size={18} />
+      <span className="font-mono text-lg">{time}s</span>
+      <Button size="sm" variant="outline" onClick={() => setTime(t => t + 15)}>+15s</Button>
+      <Button size="sm" variant="outline" onClick={() => setTime(t => Math.max(0, t - 15))}>-15s</Button>
+      <Button size="sm" variant="outline" onClick={() => setRunning(r => !r)}>{running ? 'Pause' : 'Reprendre'}</Button>
+    </div>
+  );
+};
 import {
   Dumbbell,
   Target,
@@ -48,6 +74,21 @@ const WorkoutPage: React.FC<WorkoutPageProps> = () => {
 
   const [editingSet, setEditingSet] = useState<SetEditState | null>(null);
   const [workoutTime, setWorkoutTime] = useState(0);
+  const [resting, setResting] = useState<{ exerciseId: string; setIndex: number } | null>(null);
+  // Ajout d'un nouvel exercice (manuel ou IA)
+  const handleAddNewExercise = async () => {
+    // Pour l'exemple, on ajoute un exercice générique. Pour l'IA, appeler un service ici.
+    const newExercise = {
+      name: 'Nouveau Exercice',
+      sets: [
+        { reps: 10, weight: 0, completed: false },
+        { reps: 8, weight: 0, completed: false }
+      ],
+      completed: false,
+      restTime: 90
+    };
+    addExercise(newExercise);
+  };
   
   // Exemple de données d'exercices par défaut
   const defaultExercises: Omit<WorkoutExercise, 'id'>[] = [
@@ -126,6 +167,7 @@ const WorkoutPage: React.FC<WorkoutPageProps> = () => {
 
   const handleSetComplete = (exerciseId: string, setIndex: number) => {
     updateExerciseSet(exerciseId, setIndex, { completed: true });
+    setResting({ exerciseId, setIndex });
   };
 
   const handleExerciseComplete = (exerciseId: string) => {
@@ -267,6 +309,13 @@ const WorkoutPage: React.FC<WorkoutPageProps> = () => {
               </CardContent>
             </Card>
 
+            {/* Bouton pour ajouter un nouvel exercice */}
+            <div className="flex justify-end mb-2">
+              <Button onClick={handleAddNewExercise} variant="outline" className="text-blue-600 border-blue-300 hover:bg-blue-50">
+                <Plus className="mr-1" size={16} />
+                Nouvel exercice
+              </Button>
+            </div>
             {/* Exercises */}
             <div className="space-y-4">
               {currentSession?.exercises.map((exercise) => (
@@ -287,6 +336,13 @@ const WorkoutPage: React.FC<WorkoutPageProps> = () => {
                       {exercise.sets && exercise.sets.length > 0 ? (
                         exercise.sets.map((set, setIndex) => (
                           <div key={setIndex} className={`p-3 rounded-lg border ${set.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}>
+                            {/* Timer de repos après la complétion d'une série */}
+                            {resting && resting.exerciseId === exercise.id && resting.setIndex === setIndex && set.completed && (
+                              <RestTimer
+                                initial={90}
+                                onDone={() => setResting(null)}
+                              />
+                            )}
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium">Série {setIndex + 1}</span>
                               {!set.completed && (

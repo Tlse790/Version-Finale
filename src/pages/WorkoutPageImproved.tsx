@@ -1,3 +1,4 @@
+// WorkoutPageImproved component has been removed as it is obsolete.
 import React, { useState, useEffect } from 'react';
 import {
   Dumbbell,
