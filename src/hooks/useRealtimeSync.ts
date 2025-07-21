@@ -42,9 +42,11 @@ export const useRealtimeSync = ({ pillar, onUpdate, onInsert, onDelete }: Realti
           console.log(`📡 Realtime update for ${pillar}:`, payload);
           
           // Add userId to payload for identification
+          const userId = (payload.new && typeof payload.new === 'object' && 'user_id' in payload.new) ? payload.new.user_id :
+                         (payload.old && typeof payload.old === 'object' && 'user_id' in payload.old) ? payload.old.user_id : undefined;
           const enrichedPayload = {
             ...payload,
-            userId: payload.new?.user_id || payload.old?.user_id
+            userId
           };
 
           switch (payload.eventType) {

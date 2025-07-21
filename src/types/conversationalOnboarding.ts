@@ -1,39 +1,49 @@
 // client/src/types/conversationalOnboarding.ts
+
 export interface ConversationalStep {
   id: string;
   type: 'question' | 'info' | 'confirmation' | 'summary';
-  title: string;
-  subtitle?: string;
-  question?: string;
-  description?: string;
-  options?: ConversationalOption[];
-  inputType?: 'text' | 'number' | 'slider' | 'toggle' | 'multi-select' | 'single-select';
+  title: string | ((data: any) => string);
+  subtitle?: string | ((data: any) => string);
+  question?: string | ((data: any) => string);
+  description?: string | ((data: any) => string);
+  options?: ConversationalOption[] | ((data: any) => ConversationalOption[]);
+  inputType?: 'text' | 'number' | 'slider' | 'toggle' | 'multi-select' | 'single-select' | 'group';
+  fields?: Array<{
+    id: string;
+    label: string;
+    type: 'text' | 'number' | 'select' | 'toggle';
+    options?: Array<{ id: string; label: string; value: any }>;
+    validation?: ValidationRule[];
+  }>;
   validation?: ValidationRule[];
   nextStep?: string | ((response: any, data: OnboardingData) => string);
   condition?: (data: OnboardingData) => boolean;
-  aiPrompt?: string; // Pour les réponses contextuelles de l'IA
-  illustration?: string; // Emoji ou icône
-  tips?: string[];
+  aiPrompt?: string | ((data: any) => string); // Pour les réponses contextuelles de l'IA
+  illustration?: string | ((data: any) => string); // Emoji ou icône
+  tips?: string[] | ((data: any) => string[]);
   estimatedTime?: number; // En minutes
 }
 
+
 export interface ConversationalOption {
   id: string;
-  label: string;
+  label: string | ((data: any) => string);
   value: any;
-  description?: string;
-  icon?: string;
+  description?: string | ((data: any) => string);
+  icon?: string | ((data: any) => string);
   color?: string;
   nextStep?: string;
   triggers?: string[]; // Actions ou modules à activer
   disabled?: boolean;
-  tooltip?: string;
+  tooltip?: string | ((data: any) => string);
 }
+
 
 export interface ValidationRule {
   type: 'required' | 'min' | 'max' | 'pattern' | 'custom';
   value?: any;
-  message: string;
+  message: string | ((data: any) => string);
   validator?: (value: any) => boolean;
 }
 

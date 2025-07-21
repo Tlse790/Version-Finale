@@ -35,6 +35,7 @@ import AIIntelligence from '@/components/AIIntelligence';
 import { DailyCheckIn } from '@/components/DailyCheckIn';
 import { BadgeDisplay } from '@/components/BadgeDisplay';
 import { StatsOverview } from '@/components/StatsOverview';
+import PersonalizedWidget from '@/components/PersonalizedWidget';
 
 interface SmartDashboardProps {
   userProfile?: SupabaseAuthUserType;
@@ -701,6 +702,9 @@ const SmartDashboard: React.FC<SmartDashboardProps> = ({ userProfile }) => {
             </div>
           </div>
         </div>
+
+        {/* Widget Conseils personnalisés (hydratation, sommeil, fréquence) */}
+        <PersonalizedWidget onboardingData={appStoreUser} />
 
         {/* Smart Reminders */}
         {smartReminders.length > 0 && (

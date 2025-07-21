@@ -58,6 +58,9 @@ export interface SportOption {
   name: string;
   emoji: string;
   positions?: string[];
+  category: 'team' | 'individual';
+  contactLevel: 'high' | 'medium' | 'low' | 'none';
+  environment: 'indoor' | 'outdoor' | 'both';
 }
 
 export interface OnboardingModule {

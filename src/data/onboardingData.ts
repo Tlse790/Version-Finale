@@ -70,41 +70,47 @@ export const AVAILABLE_MODULES: OnboardingModule[] = [
   }
 ];
 
-export const MAIN_OBJECTIVES = [
+
+export const WELLNESS_PACKS = [
   {
-    id: 'performance',
-    name: 'Athletic Performance',
-    description: 'Improve my performance in sports',
-    icon: '🏆',
-    modules: ['sport', 'strength', 'nutrition', 'sleep']
+    id: 'athlete_complete',
+    name: 'Athlète Complet',
+    description: 'Pour les sportifs visant la performance maximale',
+    modules: ['sport', 'strength', 'nutrition', 'hydration', 'sleep'],
+    price_tier: 'premium',
+    savings: '25%',
+    popular: true
   },
   {
-    id: 'health_wellness',
-    name: 'Health & Wellness',
-    description: 'Maintain overall good health',
-    icon: '❤️',
-    modules: ['nutrition', 'sleep', 'hydration', 'wellness']
+    id: 'sport_essentials',
+    name: 'Sport & Récupération',
+    description: "L'essentiel pour progresser dans votre sport",
+    modules: ['sport', 'sleep', 'hydration'],
+    price_tier: 'standard',
+    savings: '15%'
   },
   {
-    id: 'body_composition',
-    name: 'Body Transformation',
-    description: 'Lose weight or build muscle',
-    icon: '⚖️',
-    modules: ['strength', 'nutrition', 'hydration']
+    id: 'body_transformation',
+    name: 'Transformation Physique',
+    description: 'Musculation et nutrition pour transformer votre corps',
+    modules: ['strength', 'nutrition', 'hydration'],
+    price_tier: 'standard',
+    savings: '15%'
   },
   {
-    id: 'energy_sleep',
-    name: 'Energy & Recovery',
-    description: 'Boost my energy and recovery',
-    icon: '⚡',
-    modules: ['sleep', 'nutrition', 'hydration', 'wellness']
+    id: 'wellness_basics',
+    name: 'Bien-être Quotidien',
+    description: 'Les bases pour une meilleure santé',
+    modules: ['nutrition', 'sleep', 'hydration'],
+    price_tier: 'basic',
+    savings: '10%'
   },
   {
-    id: 'holistic',
-    name: 'Complete Transformation',
-    description: 'Optimize every aspect of my life',
-    icon: '🌟',
-    modules: ['sport', 'strength', 'nutrition', 'sleep', 'hydration', 'wellness']
+    id: 'custom',
+    name: 'Sur Mesure',
+    description: 'Choisissez vos modules à la carte',
+    modules: [],
+    price_tier: 'variable'
   }
 ];
 
@@ -116,67 +122,100 @@ export const AVAILABLE_SPORTS: SportOption[] = [
     id: 'football',
     name: 'Football',
     emoji: '⚽',
-    positions: ['Gardien', 'Défenseur central', 'Latéral droit', 'Latéral gauche', 'Milieu défensif', 'Milieu central', 'Milieu offensif', 'Ailier droit', 'Ailier gauche', 'Attaquant', 'Avant-centre']
+    positions: ['Gardien', 'Défenseur central', 'Latéral droit', 'Latéral gauche', 'Milieu défensif', 'Milieu central', 'Milieu offensif', 'Ailier droit', 'Ailier gauche', 'Attaquant', 'Avant-centre'],
+    category: 'team',
+    contactLevel: 'high',
+    environment: 'outdoor'
   },
   {
     id: 'basketball',
     name: 'Basketball',
     emoji: '🏀',
-    positions: ['Meneur (PG)', 'Arrière (SG)', 'Ailier (SF)', 'Ailier Fort (PF)', 'Pivot (C)']
+    positions: ['Meneur (PG)', 'Arrière (SG)', 'Ailier (SF)', 'Ailier Fort (PF)', 'Pivot (C)'],
+    category: 'team',
+    contactLevel: 'medium',
+    environment: 'indoor'
   },
   {
     id: 'rugby',
     name: 'Rugby',
     emoji: '🏉',
-    positions: ['Pilier', 'Talonneur', 'Deuxième ligne', 'Troisième ligne', 'Demi de mêlée', 'Demi d\'ouverture', 'Centre', 'Ailier', 'Arrière']
+    positions: ['Pilier', 'Talonneur', 'Deuxième ligne', 'Troisième ligne', 'Demi de mêlée', 'Demi d\'ouverture', 'Centre', 'Ailier', 'Arrière'],
+    category: 'team',
+    contactLevel: 'high',
+    environment: 'outdoor'
   },
   {
     id: 'tennis',
     name: 'Tennis',
     emoji: '🎾',
-    positions: ['Joueur de fond de court', 'Joueur offensif', 'Joueur polyvalent']
+    positions: ['Joueur de fond de court', 'Joueur offensif', 'Joueur polyvalent'],
+    category: 'individual',
+    contactLevel: 'low',
+    environment: 'outdoor'
   },
   {
     id: 'american_football',
     name: 'Football Américain',
     emoji: '🏈',
-    positions: ['Quarterback (QB)', 'Running Back (RB)', 'Wide Receiver (WR)', 'Tight End (TE)', 'Offensive Line', 'Defensive Line', 'Linebacker (LB)', 'Cornerback (CB)', 'Safety']
+    positions: ['Quarterback (QB)', 'Running Back (RB)', 'Wide Receiver (WR)', 'Tight End (TE)', 'Offensive Line', 'Defensive Line', 'Linebacker (LB)', 'Cornerback (CB)', 'Safety'],
+    category: 'team',
+    contactLevel: 'high',
+    environment: 'outdoor'
   },
   {
     id: 'volleyball',
     name: 'Volleyball',
     emoji: '🏐',
-    positions: ['Passeur', 'Attaquant', 'Central', 'Libéro', 'Universel']
+    positions: ['Passeur', 'Attaquant', 'Central', 'Libéro', 'Universel'],
+    category: 'team',
+    contactLevel: 'low',
+    environment: 'indoor'
   },
   {
     id: 'running',
     name: 'Course à Pied',
     emoji: '🏃‍♂️',
-    positions: ['Sprint', 'Demi-fond', 'Fond', 'Marathon', 'Trail']
+    positions: ['Sprint', 'Demi-fond', 'Fond', 'Marathon', 'Trail'],
+    category: 'individual',
+    contactLevel: 'none',
+    environment: 'outdoor'
   },
   {
     id: 'cycling',
     name: 'Cyclisme',
     emoji: '🚴‍♂️',
-    positions: ['Route', 'VTT', 'Piste', 'BMX']
+    positions: ['Route', 'VTT', 'Piste', 'BMX'],
+    category: 'individual',
+    contactLevel: 'none',
+    environment: 'outdoor'
   },
   {
     id: 'swimming',
     name: 'Natation',
     emoji: '🏊‍♂️',
-    positions: ['Nage libre', 'Brasse', 'Dos crawlé', 'Papillon', 'Quatre nages']
+    positions: ['Nage libre', 'Brasse', 'Dos crawlé', 'Papillon', 'Quatre nages'],
+    category: 'individual',
+    contactLevel: 'none',
+    environment: 'indoor'
   },
   {
     id: 'musculation',
     name: 'Musculation',
     emoji: '💪',
-    positions: ['Bodybuilding', 'Powerlifting', 'Haltérophilie', 'CrossFit', 'Fitness général']
+    positions: ['Bodybuilding', 'Powerlifting', 'Haltérophilie', 'CrossFit', 'Fitness général'],
+    category: 'individual',
+    contactLevel: 'none',
+    environment: 'indoor'
   },
   {
     id: 'other',
     name: 'Autre sport',
     emoji: '🎯',
-    positions: []
+    positions: [],
+    category: 'individual',
+    contactLevel: 'none',
+    environment: 'both'
   }
 ];
 

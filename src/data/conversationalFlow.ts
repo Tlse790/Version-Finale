@@ -49,37 +49,29 @@ export const CONVERSATIONAL_ONBOARDING_FLOW: ConversationalFlow = {
     },
 
 
-    // 📦 STEP 3: MODULE SELECTION (PACKS + CUSTOM)
+    // 📦 STEP 3: MODULE SELECTION (WELLNESS PACKS)
     {
       id: 'module_selection',
       type: 'question',
-      title: (data: any) => data?.locale === 'us' ? 'Choose your program' : 'Choisis ton programme',
-      question: (data: any) => data?.locale === 'us' ? 'Select a wellness pack or customize your modules' : 'Sélectionne un pack bien-être ou personnalise tes modules',
+      title: (data: any) => data?.locale === 'us' ? 'Choose your wellness pack' : 'Choisis ton pack bien-être',
+      question: (data: any) => data?.locale === 'us' ? 'Which pack best matches your needs?' : 'Quel pack correspond le mieux à tes besoins ?',
       description: (data: any) => data?.locale === 'us'
-        ? 'Our packs are designed by experts. You can also create your own combination.'
-        : 'Nos packs sont conçus par des experts. Tu peux aussi créer ta propre combinaison.',
+        ? 'Each pack is a complete program designed by our experts.'
+        : 'Chaque pack est un programme complet conçu par nos experts.',
       illustration: '🧩',
       inputType: 'single-select',
-      options: (data: any) => [
-        ...WELLNESS_PACKS.map((pack: any) => ({
-          id: pack.id,
-          label: data?.locale === 'us' ? pack.name_us : pack.name_fr,
-          value: pack.id,
-          description: data?.locale === 'us' ? pack.description_us : pack.description_fr,
-          icon: pack.icon,
-          modules: pack.modules
-        })),
-        {
-          id: 'custom',
-          label: data?.locale === 'us' ? 'Custom selection' : 'Personnaliser',
-          value: 'custom',
-          description: data?.locale === 'us' ? 'Choose modules individually' : 'Choisis les modules un par un',
-          icon: '⚙️',
-          modules: []
-        }
-      ],
+      options: (data: any) => WELLNESS_PACKS.map((pack: any) => ({
+        id: pack.id,
+        label: pack.name,
+        value: pack.id,
+        description: pack.description + (pack.savings ? ` (Économies: ${pack.savings})` : ''),
+        icon: pack.popular ? '🔥' : '🧩',
+        modules: pack.modules,
+        price_tier: pack.price_tier,
+        popular: pack.popular || false
+      })),
       validation: [
-        { type: 'required', message: (data: any) => data?.locale === 'us' ? 'Please select a pack or custom' : 'Merci de choisir un pack ou Personnaliser' }
+        { type: 'required', message: (data: any) => data?.locale === 'us' ? 'Please select a wellness pack' : 'Merci de choisir un pack bien-être' }
       ],
       nextStep: (response: any) => {
         if (response === 'custom') return 'custom_modules';
@@ -202,20 +194,52 @@ export const CONVERSATIONAL_ONBOARDING_FLOW: ConversationalFlow = {
       estimatedTime: 1
     },
 
-    // 👤 STEP 5: PERSONAL INFO
+    // 👤 STEP 5: PERSONAL INFO (grouped)
     {
       id: 'personal_info',
       type: 'question',
       title: 'Tell me about yourself',
-      question: 'Help me personalize your programs',
+      question: 'Please provide your age, gender, and lifestyle',
       description: 'Your information is secure and private',
       illustration: '📊',
-      inputType: 'single-select',
-      options: [
-        { id: 'age', label: 'Age', value: 'age' },
-        { id: 'gender', label: 'Gender', value: 'gender' },
-        { id: 'lifestyle', label: 'Lifestyle', value: 'lifestyle' },
-        { id: 'time', label: 'Available time', value: 'time' }
+      inputType: 'group',
+      fields: [
+        {
+          id: 'age',
+          label: 'Age',
+          type: 'number',
+          validation: [
+            { type: 'required', message: 'Age is required' },
+            { type: 'min', value: 10, message: 'Minimum age: 10' },
+            { type: 'max', value: 100, message: 'Maximum age: 100' }
+          ]
+        },
+        {
+          id: 'gender',
+          label: 'Gender',
+          type: 'select',
+          options: [
+            { id: 'male', label: 'Male', value: 'male' },
+            { id: 'female', label: 'Female', value: 'female' },
+            { id: 'other', label: 'Other', value: 'other' }
+          ],
+          validation: [
+            { type: 'required', message: 'Gender is required' }
+          ]
+        },
+        {
+          id: 'lifestyle',
+          label: 'Lifestyle',
+          type: 'select',
+          options: [
+            { id: 'active', label: 'Active', value: 'active' },
+            { id: 'sedentary', label: 'Sedentary', value: 'sedentary' },
+            { id: 'mixed', label: 'Mixed', value: 'mixed' }
+          ],
+          validation: [
+            { type: 'required', message: 'Lifestyle is required' }
+          ]
+        }
       ],
       nextStep: (_: any, data: any) => {
         if (data.selectedModules?.includes('sport')) {
@@ -229,7 +253,7 @@ export const CONVERSATIONAL_ONBOARDING_FLOW: ConversationalFlow = {
         } else if (data.selectedModules?.includes('hydration')) {
           return 'hydration_setup';
         } else {
-          return 'wellness_setup';
+          return 'final_questions';
         }
       },
       estimatedTime: 3
@@ -506,36 +530,35 @@ export const CONVERSATIONAL_ONBOARDING_FLOW: ConversationalFlow = {
       estimatedTime: 1
     },
 
-    // 📝 FINAL QUESTIONS
+    // 📝 FINAL QUESTIONS (grouped)
     {
       id: 'final_questions',
       type: 'question',
-      title: 'Last questions',
-      question: 'Share your main motivation',
-      description: 'What drives you most in this journey?',
+      title: 'Final steps',
+      question: 'Share your main motivation and accept our terms',
+      description: 'What drives you most in this journey? Please also accept our terms of service.',
       illustration: '🔥',
-      inputType: 'text',
-      validation: [
-        { type: 'required', message: 'Please share your motivation' }
-      ],
-      nextStep: 'privacy_consent',
-      estimatedTime: 2
-    },
-
-    // 🔒 CONSENT
-    {
-      id: 'privacy_consent',
-      type: 'question',
-      title: 'Privacy & Terms',
-      question: 'Accept our terms of service?',
-      description: 'Your data is secure and never sold',
-      illustration: '🔒',
-      inputType: 'toggle',
-      validation: [
-        { type: 'required', message: 'You must accept the terms to continue' }
+      inputType: 'group',
+      fields: [
+        {
+          id: 'motivation',
+          label: 'Motivation',
+          type: 'text',
+          validation: [
+            { type: 'required', message: 'Motivation is required' }
+          ]
+        },
+        {
+          id: 'privacy_consent',
+          label: 'Accept Terms',
+          type: 'toggle',
+          validation: [
+            { type: 'required', message: 'You must accept the terms to continue' }
+          ]
+        }
       ],
       nextStep: 'summary',
-      estimatedTime: 1
+      estimatedTime: 2
     },
 
     // 📋 FINAL SUMMARY

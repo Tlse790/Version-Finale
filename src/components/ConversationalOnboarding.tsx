@@ -19,7 +19,8 @@ import {
   CONVERSATIONAL_ONBOARDING_FLOW, 
   calculateEstimatedTime
 } from '@/data/conversationalFlow';
-import { AVAILABLE_SPORTS, MAIN_OBJECTIVES, AVAILABLE_MODULES } from '@/data/onboardingData';
+import { AVAILABLE_SPORTS, AVAILABLE_MODULES } from '@/data/onboardingData';
+import PersonalizedWidget from '@/components/PersonalizedWidget';
 import SportSelector from './SportSelector';
 import PositionSelector from './PositionSelector';
 import PersonalInfoForm from './PersonalInfoForm';
@@ -63,29 +64,30 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
     if (!step.validation) return errors;
     
     step.validation.forEach(rule => {
+      const getMessage = (data: any) => typeof rule.message === 'function' ? rule.message(data) : rule.message;
       switch (rule.type) {
         case 'required':
           if (!response || (Array.isArray(response) && response.length === 0)) {
-            errors.push(rule.message);
+            errors.push(getMessage(onboardingData));
           }
           break;
         case 'min':
           if (typeof response === 'string' && response.length < rule.value) {
-            errors.push(rule.message);
+            errors.push(getMessage(onboardingData));
           } else if (typeof response === 'number' && response < rule.value) {
-            errors.push(rule.message);
+            errors.push(getMessage(onboardingData));
           }
           break;
         case 'max':
           if (typeof response === 'string' && response.length > rule.value) {
-            errors.push(rule.message);
+            errors.push(getMessage(onboardingData));
           } else if (typeof response === 'number' && response > rule.value) {
-            errors.push(rule.message);
+            errors.push(getMessage(onboardingData));
           }
           break;
         case 'custom':
           if (rule.validator && !rule.validator(response)) {
-            errors.push(rule.message);
+            errors.push(getMessage(onboardingData));
           }
           break;
       }
@@ -347,6 +349,10 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
     (onboardingData.progress.completedSteps.length / onboardingData.progress.totalSteps) * 100
   );
 
+  // (Supprimé : redéclaration de renderQuestionInput)
+
+  // (Supprimé : redéclaration de renderSummaryContent)
+
   // Rendu conditionnel selon le type d'étape
   const renderStepContent = () => {
     if (!currentStep) return null;
@@ -355,22 +361,21 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
       case 'info':
         return (
           <div className="text-center space-y-6">
-            <div className="text-6xl mb-4">{currentStep.illustration}</div>
+            <div className="text-6xl mb-4">{typeof currentStep.illustration === 'function' ? currentStep.illustration(onboardingData) : currentStep.illustration}</div>
             <div className="space-y-4">
-              <h1 className="text-3xl font-bold text-gray-900">{currentStep.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{typeof currentStep.title === 'function' ? currentStep.title(onboardingData) : currentStep.title}</h1>
               {currentStep.subtitle && (
-                <p className="text-xl text-gray-600">{currentStep.subtitle}</p>
+                <p className="text-xl text-gray-600">{typeof currentStep.subtitle === 'function' ? currentStep.subtitle(onboardingData) : currentStep.subtitle}</p>
               )}
               {currentStep.description && (
-                <p className="text-gray-700 max-w-2xl mx-auto">{currentStep.description}</p>
+                <p className="text-gray-700 max-w-2xl mx-auto">{typeof currentStep.description === 'function' ? currentStep.description(onboardingData) : currentStep.description}</p>
               )}
             </div>
-            
             {currentStep.tips && (
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-blue-900 mb-2">💡 Conseils</h3>
                 <ul className="text-sm text-blue-800 space-y-1">
-                  {currentStep.tips.map((tip, index) => (
+                  {(typeof currentStep.tips === 'function' ? currentStep.tips(onboardingData) : currentStep.tips).map((tip: string, index: number) => (
                     <li key={index} className="flex items-start">
                       <Check className="h-4 w-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
                       {tip}
@@ -379,7 +384,6 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
                 </ul>
               </div>
             )}
-            
             <Button 
               onClick={goToNextStep} 
               size="lg" 
@@ -391,27 +395,24 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
             </Button>
           </div>
         );
-
       case 'question':
         return (
           <div className="space-y-6">
             <div className="text-center space-y-4">
-              <div className="text-4xl">{currentStep.illustration}</div>
+              <div className="text-4xl">{typeof currentStep.illustration === 'function' ? currentStep.illustration(onboardingData) : currentStep.illustration}</div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {currentStep.title?.replace('{firstName}', onboardingData.firstName || '')}
+                {(typeof currentStep.title === 'function' ? currentStep.title(onboardingData) : currentStep.title)?.replace('{firstName}', onboardingData.firstName || '')}
               </h1>
               {currentStep.question && (
-                <p className="text-lg text-gray-700">{currentStep.question}</p>
+                <p className="text-lg text-gray-700">{typeof currentStep.question === 'function' ? currentStep.question(onboardingData) : currentStep.question}</p>
               )}
               {currentStep.description && (
-                <p className="text-gray-600">{currentStep.description}</p>
+                <p className="text-gray-600">{typeof currentStep.description === 'function' ? currentStep.description(onboardingData) : currentStep.description}</p>
               )}
             </div>
-
             <div className="max-w-2xl mx-auto">
               {renderQuestionInput()}
             </div>
-
             {validationErrors.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-2xl mx-auto">
                 {validationErrors.map((error, index) => (
@@ -422,7 +423,6 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
                 ))}
               </div>
             )}
-
             <div className="flex justify-between max-w-2xl mx-auto">
               <Button 
                 variant="outline" 
@@ -432,7 +432,6 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
                 <Star className="h-4 w-4 mr-2" />
                 Conseils
               </Button>
-              
               <Button 
                 onClick={goToNextStep}
                 disabled={isLoading || !currentResponse}
@@ -444,20 +443,26 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
             </div>
           </div>
         );
-
       case 'summary':
         return (
           <div className="space-y-6">
             <div className="text-center space-y-4">
-              <div className="text-4xl">{currentStep.illustration}</div>
-              <h1 className="text-2xl font-bold text-gray-900">{currentStep.title}</h1>
-              <p className="text-gray-600">{currentStep.description}</p>
+              <div className="text-4xl">{typeof currentStep.illustration === 'function' ? currentStep.illustration(onboardingData) : currentStep.illustration}</div>
+              <h1 className="text-2xl font-bold text-gray-900">{typeof currentStep.title === 'function' ? currentStep.title(onboardingData) : (currentStep.title ?? '')}</h1>
+              <p className="text-gray-600">{typeof currentStep.description === 'function' ? currentStep.description(onboardingData) : (currentStep.description ?? '')}</p>
             </div>
-
+            {/* Widget Conseils personnalisés (hydratation, sommeil, fréquence) */}
+            <PersonalizedWidget onboardingData={{
+              ...onboardingData,
+              selectedModules: onboardingData.selectedModules ?? [],
+              mainObjective: onboardingData.mainObjective ?? '',
+              firstName: onboardingData.firstName ?? '',
+              age: onboardingData.age ?? 0,
+              gender: onboardingData.gender ?? 'male'
+            }} />
             <div className="max-w-2xl mx-auto space-y-4">
               {renderSummaryContent()}
             </div>
-
             <div className="flex justify-center">
               <Button 
                 onClick={completeOnboarding}
@@ -471,23 +476,6 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
             </div>
           </div>
         );
-
-      case 'confirmation':
-        return (
-          <div className="text-center space-y-6">
-            <div className="text-6xl mb-4">{currentStep.illustration}</div>
-            <h1 className="text-3xl font-bold text-gray-900">{currentStep.title}</h1>
-            <p className="text-xl text-gray-600">{currentStep.description}</p>
-            
-            <div className="bg-green-50 p-6 rounded-lg">
-              <h3 className="font-semibold text-green-900 mb-2">🎉 Félicitations !</h3>
-              <p className="text-green-800">
-                Votre profil MyFitHero est maintenant configuré. Vous allez être redirigé vers votre tableau de bord personnalisé.
-              </p>
-            </div>
-          </div>
-        );
-
       default:
         return null;
     }
@@ -622,9 +610,12 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
           );
         }
         
+        const options = currentStep.options
+          ? (typeof currentStep.options === 'function' ? currentStep.options(onboardingData) : currentStep.options)
+          : [];
         return (
           <div className="grid gap-3">
-            {currentStep.options?.map((option) => (
+            {options.map((option: any) => (
               <button
                 key={option.id}
                 onClick={() => setCurrentResponse(option.value)}
@@ -653,9 +644,12 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
         );
 
       case 'multi-select':
+        const multiOptions = currentStep.options
+          ? (typeof currentStep.options === 'function' ? currentStep.options(onboardingData) : currentStep.options)
+          : [];
         return (
           <div className="grid gap-3">
-            {currentStep.options?.map((option) => {
+            {multiOptions.map((option: any) => {
               const isSelected = Array.isArray(currentResponse) && currentResponse.includes(option.value);
               return (
                 <button
@@ -663,7 +657,7 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
                   onClick={() => {
                     const current = Array.isArray(currentResponse) ? currentResponse : [];
                     if (isSelected) {
-                      setCurrentResponse(current.filter(v => v !== option.value));
+                      setCurrentResponse(current.filter((v: any) => v !== option.value));
                     } else {
                       setCurrentResponse([...current, option.value]);
                     }
@@ -692,7 +686,7 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
             })}
           </div>
         );
-
+      // Fin du switch
       default:
         return null;
     }
@@ -700,22 +694,23 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
 
   // Rendu du résumé
   const renderSummaryContent = () => {
+    const WELLNESS_PACKS = require('@/data/onboardingData').WELLNESS_PACKS;
     const sections = [
       {
         title: "Informations personnelles",
         items: [
           { label: "Prénom", value: onboardingData.firstName },
           { label: "Âge", value: onboardingData.age },
-          { label: "Objectif principal", value: MAIN_OBJECTIVES.find(o => o.id === onboardingData.mainObjective)?.name }
-        ]
+          { label: "Objectif principal", value: WELLNESS_PACKS.find((o: any) => o.id === onboardingData.mainObjective)?.name }
+        ],
       },
       {
         title: "Modules sélectionnés",
-        items: onboardingData.selectedModules?.map(moduleId => ({
-          label: AVAILABLE_MODULES.find(m => m.id === moduleId)?.name || moduleId,
+        items: (onboardingData.selectedModules ?? []).map((moduleId: string) => ({
+          label: AVAILABLE_MODULES.find((m: any) => m.id === moduleId)?.name || moduleId,
           value: "✓"
-        })) || []
-      }
+        })),
+      },
     ];
 
     return (
@@ -812,7 +807,7 @@ export default function ConversationalOnboarding({ onComplete, onSkip }: Convers
             </Button>
           </div>
           <ul className="text-sm text-gray-600 space-y-1">
-            {currentStep.tips.map((tip, index) => (
+            {(typeof currentStep.tips === 'function' ? currentStep.tips(onboardingData) : currentStep.tips).map((tip: string, index: number) => (
               <li key={index} className="flex items-start">
                 <span className="text-blue-600 mr-2">•</span>
                 {tip}
