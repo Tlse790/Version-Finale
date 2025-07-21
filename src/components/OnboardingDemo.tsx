@@ -1,5 +1,8 @@
 // client/src/components/OnboardingDemo.tsx
 import { useState } from 'react';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,11 +18,25 @@ export default function OnboardingDemo({ user }: OnboardingDemoProps) {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [completedData, setCompletedData] = useState<OnboardingData | null>(null);
   const [debugMode, setDebugMode] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleComplete = (data: OnboardingData) => {
-    setCompletedData(data);
-    setShowOnboarding(false);
-    console.log('Onboarding completed:', data);
+    try {
+      setCompletedData(data);
+      setShowOnboarding(false);
+      console.log('Onboarding completed:', data);
+      // Redirection automatique vers la page d'accueil après onboarding
+      setTimeout(() => {
+        navigate('/HomePage');
+      }, 500);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la finalisation de l'onboarding.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleReset = () => {
