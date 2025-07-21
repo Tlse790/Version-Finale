@@ -1,4 +1,4 @@
-// client/src/types/conversationalOnboarding.ts
+
 
 export interface ConversationalStep {
   id: string;

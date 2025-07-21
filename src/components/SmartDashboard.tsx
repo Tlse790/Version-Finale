@@ -119,6 +119,132 @@ const SmartDashboard: React.FC<SmartDashboardProps> = ({ userProfile }) => {
     }
   }, [appStoreUser]);
 
+  // ... (rest of the code remains unchanged)
+
+};
+
+export default SmartDashboard;
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  Mic, 
+  MicOff, 
+  Send, 
+  Play, 
+  Calendar,
+  Zap,
+  User,
+  Settings,
+  Dumbbell,
+  Apple,
+  Moon,
+  Droplets,
+  Brain,
+  Clock,
+  Loader2,
+  Flame,
+  Heart,
+  Star,
+  CheckCircle,
+  AlertCircle,
+  ArrowRight
+} from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useLocation } from 'wouter';
+import { useAppStore } from '@/stores/useAppStore';
+import { SmartDashboardContext, DailyProgramDisplay } from '@/types/dashboard';
+import { DailyStats, Json } from '@/lib/supabase';
+import { User as SupabaseAuthUserType } from '@supabase/supabase-js';
+import { UserProfile } from '@/types/user';
+import { useAnimateOnMount, useHaptic } from '@/hooks/useAnimations';
+import { useAdaptiveColors } from '@/components/ThemeProvider';
+import AIIntelligence from '@/components/AIIntelligence';
+import { DailyCheckIn } from '@/components/DailyCheckIn';
+import { BadgeDisplay } from '@/components/BadgeDisplay';
+import { StatsOverview } from '@/components/StatsOverview';
+import PersonalizedWidget from '@/components/PersonalizedWidget';
+
+interface SmartDashboardProps {
+  userProfile?: SupabaseAuthUserType;
+}
+
+interface ChatMessage {
+  id: number;
+  type: 'ai' | 'user';
+  content: string;
+  timestamp: Date;
+}
+
+interface WebhookPayload {
+  new: {
+    status: string;
+    webhook_response?: {
+      recommendation?: string;
+    };
+  };
+}
+
+interface LocalPersonalizedWidget {
+  id: string;
+  title: string;
+  content: string;
+  icon: React.ElementType;
+  color: string;
+  priority: 'high' | 'medium' | 'low';
+  action?: string;
+  path?: string;
+}
+
+const SmartDashboard: React.FC<SmartDashboardProps> = ({ userProfile }) => {
+  const [, navigate] = useLocation();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [dailyStats, setDailyStats] = useState<DailyStats | null>(null);
+  const [loadingDailyStats, setLoadingDailyStats] = useState(true);
+
+  // Animations et thème
+  const isVisible = useAnimateOnMount(300);
+  const colors = useAdaptiveColors();
+  const { clickVibration } = useHaptic();
+
+  const {
+    dailyGoals,
+    fetchDailyStats,
+    fetchAiRecommendations,
+    appStoreUser
+  } = useAppStore();
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // ===== FONCTIONS DE PERSONNALISATION ULTRA-POUSSÉE =====
+
+  const getPersonalizedGreeting = useCallback(() => {
+    const hour = new Date().getHours();
+    const user = appStoreUser;
+    const firstName = user?.username?.split(' ')[0] || user?.full_name?.split(' ')[0] || 'Champion';
+    
+    // Salutations selon l'heure ET le profil sportif
+    if (hour < 6) {
+      return `🌙 ${firstName}, encore debout ? ${user?.sport === 'rugby' ? 'Les piliers se lèvent tôt !' : 'Repos = gains !'}`;
+    } else if (hour < 12) {
+      if (user?.sport === 'rugby' && user?.sport_position === 'pilier') {
+        return `🏉 Bonjour ${firstName} ! Prêt à dominer la mêlée aujourd'hui ?`;
+      } else if (user?.primary_goals?.includes('weight_loss')) {
+        return `🔥 Salut ${firstName} ! Ready to burn some calories ?`;
+      } else if (user?.primary_goals?.includes('muscle_gain')) {
+        return `💪 Morning ${firstName} ! Time to build that muscle !`;
+      } else {
+        return `☀️ Bonjour ${firstName} ! Prêt à conquérir cette journée ?`;
+      }
+    } else if (hour < 18) {
+      return `👋 Salut ${firstName} ! ${user?.sport ? 'Comment se passe ta prep ?' : 'Tu gères ta journée !'}`;
+    } else {
+      return `🌆 Bonsoir ${firstName} ! ${user?.primary_goals?.includes('sleep_quality') ? 'Time to wind down ?' : 'Fini ta journée fitness ?'}`;
+    }
+  }, [appStoreUser]);
+
   const getPersonalizedWorkout = useCallback((profile: UserProfile | null) => {
     if (!profile) return 'Entraînement Général';
     

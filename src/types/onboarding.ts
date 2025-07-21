@@ -1,4 +1,4 @@
-// client/src/types/onboarding.ts
+
 export interface OnboardingStep {
   id: string;
   title: string;

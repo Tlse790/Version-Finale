@@ -1,4 +1,4 @@
-// client/src/data/conversationalFlow.ts
+
 import { ConversationalFlow } from '@/types/conversationalOnboarding';
 import { WELLNESS_PACKS, AVAILABLE_SPORTS, SPORT_LEVELS, EQUIPMENT_LEVELS, STRENGTH_OBJECTIVES, FITNESS_EXPERIENCE_LEVELS, DIETARY_PREFERENCES, NUTRITION_OBJECTIVES } from './onboardingData';
 

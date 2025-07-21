@@ -1,4 +1,4 @@
-// client/src/hooks/useRealtimeSync.ts
+
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAppStore } from '@/stores/useAppStore';
