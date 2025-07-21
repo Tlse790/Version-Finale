@@ -1,9 +1,10 @@
 // client/src/data/conversationalFlow.ts
 import { ConversationalFlow } from '@/types/conversationalOnboarding';
+import { WELLNESS_PACKS, AVAILABLE_SPORTS, SPORT_LEVELS, EQUIPMENT_LEVELS, STRENGTH_OBJECTIVES, FITNESS_EXPERIENCE_LEVELS, DIETARY_PREFERENCES, NUTRITION_OBJECTIVES } from './onboardingData';
 
 // Suppression des imports d'options externes
 
-
+export const CONVERSATIONAL_ONBOARDING_FLOW: ConversationalFlow = {
   id: 'myfithero_onboarding_v4',
   name: 'MyFitHero - AI-Powered Wellness Journey',
   description: 'Personalized onboarding powered by AI',
@@ -29,6 +30,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       nextStep: 'get_name'
     },
 
+
     // 📝 STEP 2: GET NAME
     {
       id: 'get_name',
@@ -42,140 +44,133 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
         { type: 'required', message: 'Please enter your name' },
         { type: 'min', value: 2, message: 'Name must be at least 2 characters' }
       ],
-      nextStep: 'main_objective',
+      nextStep: 'wellness_pack',
       estimatedTime: 1
     },
 
-    // 🎯 STEP 3: MAIN GOAL
-    {
-      id: 'main_objective',
-      type: 'question',
-      title: 'Great {firstName}! 🌟',
-      question: 'What\'s your primary goal?',
-      description: 'This helps me recommend the perfect modules for you',
-      illustration: '🎯',
-      inputType: 'single-select',
-      options: (data: any) => [
-        {
-          id: 'performance',
-          label: data?.locale === 'us' ? 'Athletic Performance' : 'Performance sportive',
-          value: 'performance',
-          description: data?.locale === 'us' ? 'Improve my performance in sports' : 'Améliorer mes performances sportives',
-          icon: '🏆',
-          triggers: ['sport', 'strength', 'nutrition', 'sleep']
-        },
-        {
-          id: 'health_wellness',
-          label: data?.locale === 'us' ? 'Health & Wellness' : 'Santé & Bien-être',
-          value: 'health_wellness',
-          description: data?.locale === 'us' ? 'Maintain overall good health' : 'Maintenir une bonne santé générale',
-          icon: '❤️',
-          triggers: ['nutrition', 'sleep', 'hydration', 'wellness']
-        },
-        {
-          id: 'body_composition',
-          label: data?.locale === 'us' ? 'Body Transformation' : 'Transformation physique',
-          value: 'body_composition',
-          description: data?.locale === 'us' ? 'Lose weight or build muscle' : 'Perdre du poids ou prendre du muscle',
-          icon: '⚖️',
-          triggers: ['strength', 'nutrition', 'hydration']
-        },
-        {
-          id: 'energy_sleep',
-          label: data?.locale === 'us' ? 'Energy & Recovery' : 'Énergie & Récupération',
-          value: 'energy_sleep',
-          description: data?.locale === 'us' ? 'Boost my energy and recovery' : 'Booster mon énergie et ma récupération',
-          icon: '⚡',
-          triggers: ['sleep', 'nutrition', 'hydration', 'wellness']
-        },
-        {
-          id: 'holistic',
-          label: data?.locale === 'us' ? 'Complete Transformation' : 'Transformation complète',
-          value: 'holistic',
-          description: data?.locale === 'us' ? 'Optimize every aspect of my life' : 'Optimiser tous les aspects de ma vie',
-          icon: '🌟',
-          triggers: ['sport', 'strength', 'nutrition', 'sleep', 'hydration', 'wellness']
-        }
-      ],
-      validation: [
-        { type: 'required', message: (data: any) => data?.locale === 'us' ? 'Please select your main goal' : 'Veuillez sélectionner votre objectif principal' }
-      ],
-      nextStep: 'module_selection',
-      estimatedTime: 2
-    },
 
-    // 📦 STEP 4: MODULE SELECTION
+    // 📦 STEP 3: MODULE SELECTION (PACKS + CUSTOM)
     {
       id: 'module_selection',
       type: 'question',
-      title: (data: any) => data?.locale === 'us' ? 'Build Your Perfect Program' : 'Construisez votre programme idéal',
-      question: (data: any) => data?.locale === 'us' ? 'Which areas would you like to focus on?' : 'Quels domaines souhaitez-vous travailler ?',
+      title: (data: any) => data?.locale === 'us' ? 'Choose your program' : 'Choisis ton programme',
+      question: (data: any) => data?.locale === 'us' ? 'Select a wellness pack or customize your modules' : 'Sélectionne un pack bien-être ou personnalise tes modules',
       description: (data: any) => data?.locale === 'us'
-        ? 'Based on your goals, here are our AI-powered recommendations. Each module adapts to your progress.'
-        : 'Selon vos objectifs, voici nos recommandations. Chaque module s’adapte à votre progression.',
+        ? 'Our packs are designed by experts. You can also create your own combination.'
+        : 'Nos packs sont conçus par des experts. Tu peux aussi créer ta propre combinaison.',
+      illustration: '🧩',
+      inputType: 'single-select',
+      options: (data: any) => [
+        ...WELLNESS_PACKS.map((pack: any) => ({
+          id: pack.id,
+          label: data?.locale === 'us' ? pack.name_us : pack.name_fr,
+          value: pack.id,
+          description: data?.locale === 'us' ? pack.description_us : pack.description_fr,
+          icon: pack.icon,
+          modules: pack.modules
+        })),
+        {
+          id: 'custom',
+          label: data?.locale === 'us' ? 'Custom selection' : 'Personnaliser',
+          value: 'custom',
+          description: data?.locale === 'us' ? 'Choose modules individually' : 'Choisis les modules un par un',
+          icon: '⚙️',
+          modules: []
+        }
+      ],
+      validation: [
+        { type: 'required', message: (data: any) => data?.locale === 'us' ? 'Please select a pack or custom' : 'Merci de choisir un pack ou Personnaliser' }
+      ],
+      nextStep: (response: any) => {
+        if (response === 'custom') return 'custom_modules';
+        return 'module_upsell';
+      },
+      estimatedTime: 2
+    },
+
+    // �️ STEP 3.1: CUSTOM MODULES
+    {
+      id: 'custom_modules',
+      type: 'question',
+      title: (data: any) => data?.locale === 'us' ? 'Customize your modules' : 'Personnalise tes modules',
+      question: (data: any) => data?.locale === 'us' ? 'Which areas do you want to work on?' : 'Quels domaines veux-tu travailler ?',
+      description: (data: any) => data?.locale === 'us'
+        ? 'Select one or more modules to build your own program.'
+        : 'Sélectionne un ou plusieurs modules pour créer ton programme.',
       illustration: '📋',
       inputType: 'multi-select',
       options: (data: any) => [
-        {
-          id: 'sport',
-          label: data?.locale === 'us' ? 'Sport & Performance' : 'Sport & Performance',
-          value: 'sport',
-          description: data?.locale === 'us' ? 'Personalized training programs for your sport' : 'Programmes personnalisés pour votre sport',
-          icon: '🏃‍♂️',
-          color: '#3B82F6'
-        },
-        {
-          id: 'strength',
-          label: data?.locale === 'us' ? 'Strength Training' : 'Musculation',
-          value: 'strength',
-          description: data?.locale === 'us' ? 'Muscle building and physical development' : 'Développement musculaire et physique',
-          icon: '💪',
-          color: '#EF4444'
-        },
-        {
-          id: 'nutrition',
-          label: data?.locale === 'us' ? 'Nutrition' : 'Nutrition',
-          value: 'nutrition',
-          description: data?.locale === 'us' ? 'Optimized nutrition for your goals' : 'Nutrition optimisée pour vos objectifs',
-          icon: '🥗',
-          color: '#10B981'
-        },
-        {
-          id: 'sleep',
-          label: data?.locale === 'us' ? 'Sleep' : 'Sommeil',
-          value: 'sleep',
-          description: data?.locale === 'us' ? 'Recovery and rest optimization' : 'Optimisation du repos et de la récupération',
-          icon: '😴',
-          color: '#8B5CF6'
-        },
-        {
-          id: 'hydration',
-          label: data?.locale === 'us' ? 'Hydration' : 'Hydratation',
-          value: 'hydration',
-          description: data?.locale === 'us' ? 'Hydration tracking and optimization' : 'Suivi et optimisation de l’hydratation',
-          icon: '💧',
-          color: '#06B6D4'
-        },
-        {
-          id: 'wellness',
-          label: data?.locale === 'us' ? 'Global Wellness' : 'Bien-être global',
-          value: 'wellness',
-          description: data?.locale === 'us' ? 'Holistic approach to health and wellness' : 'Approche globale du bien-être',
-          icon: '🧘‍♀️',
-          color: '#F59E0B'
-        }
+        { id: 'sport', label: data?.locale === 'us' ? 'Sport & Performance' : 'Sport & Performance', value: 'sport', description: data?.locale === 'us' ? 'Personalized training programs for your sport' : 'Programmes personnalisés pour ton sport', icon: '🏃‍♂️', color: '#3B82F6' },
+        { id: 'strength', label: data?.locale === 'us' ? 'Strength Training' : 'Musculation', value: 'strength', description: data?.locale === 'us' ? 'Muscle building and physical development' : 'Développement musculaire et physique', icon: '💪', color: '#EF4444' },
+        { id: 'nutrition', label: data?.locale === 'us' ? 'Nutrition' : 'Nutrition', value: 'nutrition', description: data?.locale === 'us' ? 'Optimized nutrition for your goals' : 'Nutrition optimisée pour tes objectifs', icon: '🥗', color: '#10B981' },
+        { id: 'sleep', label: data?.locale === 'us' ? 'Sleep' : 'Sommeil', value: 'sleep', description: data?.locale === 'us' ? 'Recovery and rest optimization' : 'Optimisation du repos et de la récupération', icon: '😴', color: '#8B5CF6' },
+        { id: 'hydration', label: data?.locale === 'us' ? 'Hydration' : 'Hydratation', value: 'hydration', description: data?.locale === 'us' ? 'Hydration tracking and optimization' : 'Suivi et optimisation de l’hydratation', icon: '💧', color: '#06B6D4' },
+        { id: 'wellness', label: data?.locale === 'us' ? 'Global Wellness' : 'Bien-être global', value: 'wellness', description: data?.locale === 'us' ? 'Holistic approach to health and wellness' : 'Approche globale du bien-être', icon: '🧘‍♀️', color: '#F59E0B' }
       ],
       validation: [
         { type: 'required', message: (data: any) => data?.locale === 'us' ? 'Please select at least one module' : 'Veuillez sélectionner au moins un module' }
       ],
+      nextStep: 'module_upsell',
+      estimatedTime: 2
+    },
+
+    // 💰 STEP 4: INTELLIGENT UPSELL
+    {
+      id: 'module_upsell',
+      type: 'question',
+      title: (data: any) => {
+        // Upsell dynamique selon la sélection
+        if (data.selectedModules?.includes('sport') && !data.selectedModules?.includes('strength')) {
+          return data?.locale === 'us' ? 'Add Strength for 25% more performance!' : 'Ajoutez la musculation pour +25% de performance !';
+        }
+        if (data.selectedModules?.includes('strength') && !data.selectedModules?.includes('nutrition')) {
+          return data?.locale === 'us' ? 'Nutrition is 70% of your results!' : 'La nutrition représente 70% de vos résultats !';
+        }
+        if (data.selectedModules?.includes('sport') && !data.selectedModules?.includes('sleep')) {
+          return data?.locale === 'us' ? 'Recovery is crucial for performance' : 'La récupération est cruciale pour la performance';
+        }
+        return data?.locale === 'us' ? 'Boost your results!' : 'Boostez vos résultats !';
+      },
+      question: (data: any) => {
+        if (data.selectedModules?.includes('sport') && !data.selectedModules?.includes('strength')) {
+          return data?.locale === 'us' ? 'Would you like to add Strength Training?' : 'Voulez-vous ajouter la musculation à votre programme ?';
+        }
+        if (data.selectedModules?.includes('strength') && !data.selectedModules?.includes('nutrition')) {
+          return data?.locale === 'us' ? 'Would you like to add Nutrition?' : 'Voulez-vous ajouter la nutrition à votre programme ?';
+        }
+        if (data.selectedModules?.includes('sport') && !data.selectedModules?.includes('sleep')) {
+          return data?.locale === 'us' ? 'Would you like to add Sleep Optimization?' : 'Voulez-vous ajouter l’optimisation du sommeil ?';
+        }
+        return data?.locale === 'us' ? 'Would you like to add another module?' : 'Voulez-vous ajouter un autre module ?';
+      },
+      inputType: 'single-select',
+      options: (data: any) => {
+        const upsellOptions = [];
+        if (data.selectedModules?.includes('sport') && !data.selectedModules?.includes('strength')) {
+          upsellOptions.push({ id: 'add_strength', label: data?.locale === 'us' ? 'Add Strength' : 'Ajouter Musculation', value: 'strength' });
+        }
+        if (data.selectedModules?.includes('strength') && !data.selectedModules?.includes('nutrition')) {
+          upsellOptions.push({ id: 'add_nutrition', label: data?.locale === 'us' ? 'Add Nutrition' : 'Ajouter Nutrition', value: 'nutrition' });
+        }
+        if (data.selectedModules?.includes('sport') && !data.selectedModules?.includes('sleep')) {
+          upsellOptions.push({ id: 'add_sleep', label: data?.locale === 'us' ? 'Add Sleep' : 'Ajouter Sommeil', value: 'sleep' });
+        }
+        if (upsellOptions.length === 0) {
+          upsellOptions.push({ id: 'no_upsell', label: data?.locale === 'us' ? 'Continue' : 'Continuer', value: 'none' });
+        }
+        return upsellOptions;
+      },
+      validation: [
+        { type: 'required', message: (data: any) => data?.locale === 'us' ? 'Please make a choice' : 'Merci de faire un choix' }
+      ],
       nextStep: (response: any, data: any) => {
-        const selectedModules = response as string[];
-        if (!selectedModules.includes('nutrition') || !selectedModules.includes('sleep')) {
-          return 'module_upsell';
+        if (response && response !== 'none') {
+          // Ajouter le module upsell à la sélection
+          data.selectedModules = [...(data.selectedModules || []), response];
         }
         return 'personal_info';
       },
-      estimatedTime: 3
+      estimatedTime: 1
     },
 
     // 💰 STEP 4.5: UPSELL (US Market)
@@ -222,7 +217,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
         { id: 'lifestyle', label: 'Lifestyle', value: 'lifestyle' },
         { id: 'time', label: 'Available time', value: 'time' }
       ],
-      nextStep: (_, data) => {
+      nextStep: (_: any, data: any) => {
         if (data.selectedModules?.includes('sport')) {
           return 'sport_selection';
         } else if (data.selectedModules?.includes('strength')) {
@@ -249,8 +244,8 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       description: 'This helps me create sport-specific programs',
       illustration: '🏃‍♂️',
       inputType: 'single-select',
-      condition: (data) => data.selectedModules?.includes('sport') || false,
-      options: AVAILABLE_SPORTS.map(sport => ({
+      condition: (data: any) => data.selectedModules?.includes('sport') || false,
+      options: AVAILABLE_SPORTS.map((sport: any) => ({
         id: sport.id,
         label: sport.name,
         value: sport.id,
@@ -271,7 +266,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       description: 'For even more targeted programs',
       illustration: '🎯',
       inputType: 'single-select',
-      condition: (data) => !!(data.selectedModules?.includes('sport') && data.sport !== 'other'),
+      condition: (data: any) => !!(data.selectedModules?.includes('sport') && data.sport !== 'other'),
       options: [], // Will be filled dynamically based on sport
       nextStep: 'sport_level',
       estimatedTime: 1
@@ -285,8 +280,8 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       description: 'Be honest, this determines your program intensity',
       illustration: '📊',
       inputType: 'single-select',
-      condition: (data) => data.selectedModules?.includes('sport') || false,
-      options: SPORT_LEVELS.map(level => ({
+      condition: (data: any) => data.selectedModules?.includes('sport') || false,
+      options: SPORT_LEVELS.map((level: any) => ({
         id: level.id,
         label: level.name,
         value: level.id,
@@ -308,7 +303,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       illustration: '🏋️‍♂️',
       inputType: 'single-select',
       condition: (data) => data.selectedModules?.includes('sport') || false,
-      options: EQUIPMENT_LEVELS.map(level => ({
+      options: EQUIPMENT_LEVELS.map((level: any) => ({
         id: level.id,
         label: level.name,
         value: level.id,
@@ -317,7 +312,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       validation: [
         { type: 'required', message: 'Please select your equipment level' }
       ],
-      nextStep: (_, data) => {
+      nextStep: (_: any, data: any) => {
         if (data.selectedModules?.includes('strength')) {
           return 'strength_setup';
         } else if (data.selectedModules?.includes('nutrition')) {
@@ -342,8 +337,8 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       description: 'This determines your training style',
       illustration: '💪',
       inputType: 'single-select',
-      condition: (data) => data.selectedModules?.includes('strength') || false,
-      options: STRENGTH_OBJECTIVES.map(obj => ({
+      condition: (data: any) => data.selectedModules?.includes('strength') || false,
+      options: STRENGTH_OBJECTIVES.map((obj: any) => ({
         id: obj.id,
         label: obj.name,
         value: obj.id,
@@ -364,8 +359,8 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       description: 'This helps adjust exercise complexity',
       illustration: '📈',
       inputType: 'single-select',
-      condition: (data) => data.selectedModules?.includes('strength') || false,
-      options: FITNESS_EXPERIENCE_LEVELS.map(level => ({
+      condition: (data: any) => data.selectedModules?.includes('strength') || false,
+      options: FITNESS_EXPERIENCE_LEVELS.map((level: any) => ({
         id: level.id,
         label: level.name,
         value: level.id,
@@ -374,7 +369,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       validation: [
         { type: 'required', message: 'Please select your experience level' }
       ],
-      nextStep: (_, data) => {
+      nextStep: (_: any, data: any) => {
         if (data.selectedModules?.includes('nutrition')) {
           return 'nutrition_setup';
         } else if (data.selectedModules?.includes('sleep')) {
@@ -397,8 +392,8 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       description: 'I\'ll personalize meal plans to your preferences',
       illustration: '🥗',
       inputType: 'single-select',
-      condition: (data) => data.selectedModules?.includes('nutrition') || false,
-      options: DIETARY_PREFERENCES.map(pref => ({
+      condition: (data: any) => data.selectedModules?.includes('nutrition') || false,
+      options: DIETARY_PREFERENCES.map((pref: any) => ({
         id: pref.id,
         label: pref.name,
         value: pref.id,
@@ -420,7 +415,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       illustration: '🎯',
       inputType: 'single-select',
       condition: (data) => data.selectedModules?.includes('nutrition') || false,
-      options: NUTRITION_OBJECTIVES.map(obj => ({
+      options: NUTRITION_OBJECTIVES.map((obj: any) => ({
         id: obj.id,
         label: obj.name,
         value: obj.id,
@@ -429,7 +424,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       validation: [
         { type: 'required', message: 'Please select your nutrition goal' }
       ],
-      nextStep: (_, data) => {
+      nextStep: (_: any, data: any) => {
         if (data.selectedModules?.includes('sleep')) {
           return 'sleep_setup';
         } else if (data.selectedModules?.includes('hydration')) {
@@ -450,7 +445,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       description: 'Sleep is crucial for recovery and performance',
       illustration: '😴',
       inputType: 'slider',
-      condition: (data) => data.selectedModules?.includes('sleep') || false,
+      condition: (data: any) => data.selectedModules?.includes('sleep') || false,
       validation: [
         { type: 'required', message: 'Please indicate your sleep duration' },
         { type: 'min', value: 4, message: 'Minimum: 4 hours' },
@@ -469,7 +464,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       illustration: '🌙',
       inputType: 'toggle',
       condition: (data) => data.selectedModules?.includes('sleep') || false,
-      nextStep: (_, data) => {
+      nextStep: (_: any, data: any) => {
         if (data.selectedModules?.includes('hydration')) {
           return 'hydration_setup';
         } else {
@@ -488,7 +483,7 @@ import { ConversationalFlow } from '@/types/conversationalOnboarding';
       description: 'Good hydration improves performance and recovery',
       illustration: '💧',
       inputType: 'slider',
-      condition: (data) => data.selectedModules?.includes('hydration') || false,
+      condition: (data: any) => data.selectedModules?.includes('hydration') || false,
       validation: [
         { type: 'required', message: 'Please set your hydration goal' },
         { type: 'min', value: 1, message: 'Minimum: 1 liter per day' },
