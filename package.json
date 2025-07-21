@@ -8,12 +8,12 @@
     "pnpm": "8.x"
   },
   "scripts": {
-    "dev": "cd client && vite",
+    "dev": "vite",
     "dev:full": "vite",
-    "build": "cd client && vite build",
-    "vercel-build": "cd client && vite build",
-    "preview": "cd client && vite preview",
-    "start": "cd client && vite preview",
+    "build": "vite build",
+    "vercel-build": "vite build",
+    "preview": "vite preview",
+    "start": "vite preview",
     "check": "tsc",
     "prepare": "echo 'Ready'"
   },
