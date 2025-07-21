@@ -33,7 +33,6 @@ i18n
       caches: ['localStorage', 'sessionStorage'],
       lookupLocalStorage: 'i18nextLng',
       lookupSessionStorage: 'i18nextLng',
-      checkWhitelist: true,
     },
 
     interpolation: {
